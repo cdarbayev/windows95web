@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Windows 95</title>
+    <link rel="icon" type="image/png" href="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png">
+    <style>
+        :root {
+            --win-gray: #c0c0c0;
+            --win-blue: #000080;
+        }
+
+        body {
+            background-image: url('bg.jpg');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            user-select: none;
+        }
+
+        .desktop-icons {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .icon {
+            position: absolute;
+            width: 80px;
+            text-align: center;
+            color: white;
+            text-shadow: 1px 1px 0 #000;
+            pointer-events: auto;
+            user-select: none;
+        }
+
+        .icon:active .icon-text, .icon.selected .icon-text {
+            background-color: #000080;
+            outline: 1px dotted white;
+        }
+
+        .icon:active .icon-img {
+            opacity: 0.7;
+        }
+
+        .icon-img {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+        .icon-text {
+            font-size: 14px;
+            padding: 2px;
+        }
+
+        .window {
+            position: absolute;
+            background-color: var(--win-gray);
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+            width: 400px;
+            display: none;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .window-header {
+            background-color: var(--win-blue);
+            color: white;
+            padding: 4px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            cursor: grab;
+        }
+
+        .close-btn {
+            background-color: var(--win-gray);
+            border: 1px solid;
+            width: 16px;
+            height: 16px;
+            text-align: center;
+            color: black;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .window-body {
+            padding: 15px;
+            color: black;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .code-block {
+            background: white;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+        }
+
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 35px;
+            background-color: var(--win-gray);
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            z-index: 100;
+        }
+
+        .start-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            font-weight: bold;
+            font-size: 14px;
+            background-color: var(--win-gray);
+            border: 2px solid;
+            cursor: pointer;
+            margin-left: 2px;
+            color: black;
+        }
+
+        .clock {
+            margin-left: auto;
+            border: 2px solid;
+            border-color: #808080 white white #808080;
+            padding: 4px 10px;
+            font-size: 12px;
+            margin-right: 5px;
+            background: #c0c0c0;
+            color: black;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .clock:active, .clock.active {
+            border-color: white #808080 #808080 white;
+        }
+
+        #start-menu {
+            display: none;
+            position: fixed;
+            bottom: 38px;
+            left: 2px;
+            width: 180px;
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: white black black white;
+            padding: 2px;
+            z-index: 10000;
+        }
+
+        .menu-item {
+            padding: 5px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            background-color: #000080;
+            color: white;
+        }
+
+        #calendar-popup {
+            display: none;
+            position: fixed;
+            bottom: 38px;
+            right: 2px;
+            width: 220px;
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: white black black white;
+            padding: 5px;
+            z-index: 10000;
+        }
+
+        #bsod {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #0000AA;
+            color: white;
+            font-family: 'Courier New', monospace;
+            z-index: 999999;
+            padding: 50px;
+            box-sizing: border-box;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="desktop-icons">
+        <div class="icon" style="top: 20px; left: 20px;" ondblclick="openWindow('win-about')">
+            <div class="icon-img">💻</div>
+            <div class="icon-text">Tento počítač</div>
+        </div>
+        
+        <div class="icon" style="top: 20px; right: 20px; left: auto;" ondblclick="openWindow('win-bin')">
+            <div class="icon-img">🗑️</div>
+            <div class="icon-text">Koš</div>
+        </div>
+
+        <div class="icon" style="top: 120px; left: 20px;" ondblclick="openWindow('win-skills')">
+            <div class="icon-img">📝</div>
+            <div class="icon-text">Skills.txt</div>
+        </div>
+        <div class="icon" style="top: 120px; left: 120px;" ondblclick="openWindow('win-notepad')">
+            <div class="icon-img">📓</div>
+            <div class="icon-text">Notepad</div>
+        </div>
+
+        <div class="icon" style="top: 220px; left: 20px;" ondblclick="openWindow('win-projects')">
+            <div class="icon-img">📁</div>
+            <div class="icon-text">Projekty</div>
+        </div>
+        <div class="icon" style="top: 220px; left: 120px;" ondblclick="openWindow('win-paint')">
+            <div class="icon-img">🎨</div>
+            <div class="icon-text">Paint</div>
+        </div>
+    </div>
+
+    <div id="win-about" class="window" style="top: 50px; left: 150px;">
+        <div class="window-header" onmousedown="startDrag(event, this.parentElement)">
+            <span>Vlastnosti systému</span>
+            <div class="close-btn" onclick="closeWindow('win-about')">X</div>
+        </div>
+        <div class="window-body">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div style="font-size: 40px;">👨‍💻</div>
+                <div>
+                    <b>Systém:</b> Windows 95<br>
+                    <b>Uživatel:</b> Chingis Darbayev<br>
+                    <b>Stav:</b> Online
+                </div>
+            </div>
+            <hr>
+            <p>Jsem studentem CVUT oboru AIPV.<br>Web pro PW</p>
+            <button onclick="closeWindow('win-about')">OK</button>
+        </div>
+    </div>
+
+    <div id="win-skills" class="window" style="top: 100px; left: 250px;">
+        <div class="window-header" onmousedown="startDrag(event, this.parentElement)">
+            <span>Skills.txt</span>
+            <div class="close-btn" onclick="closeWindow('win-skills')">X</div>
+        </div>
+        <div class="window-body">
+            <div class="code-block" style="height: 100px; overflow-y: scroll;">
+                * Jazyky:<br>
+                - C++, Python, Java<br>
+                - HTML,CSS,JS<br>
+                <br>
+                * Nástroje:<br>
+                - Git, Linux, SQL
+            </div>
+        </div>
+    </div>
+
+    <div id="win-projects" class="window" style="top: 150px; left: 350px;">
+        <div class="window-header" onmousedown="startDrag(event, this.parentElement)">
+            <span>C:\Projekty</span>
+            <div class="close-btn" onclick="closeWindow('win-projects')">X</div>
+        </div>
+        <div class="window-body">
+            <p>Nalezeno 3 položek (Klikněte pro otevření):</p>
+            <div style="display: flex; gap: 20px; text-align: center;">
+                <a href="https://github.com/cdarbayev/pipex" target="_blank" style="text-decoration: none; color: black; width: 80px; cursor: pointer;">
+                    <div style="font-size: 30px;">👾</div>
+                    <small>Pipex</small>
+                </a>
+                <a href="https://github.com/cdarbayev/Memory-game" target="_blank" style="text-decoration: none; color: black; width: 80px; cursor: pointer;">
+                    <div style="font-size: 30px;">🧠</div>
+                    <small>Memory game</small>
+                </a>
+                <a href="https://github.com/cdarbayev/fractal-drawer" target="_blank" style="text-decoration: none; color: black; width: 80px; cursor: pointer;">
+                    <div style="font-size: 30px;">📡</div>
+                    <small>Fractal drawer</small>
+                </a>
+            </div>
+            <br>
+            <div class="code-block">
+                <b>Poznamka:</b> Odkazy se otevírají v novém okně.
+            </div>
+        </div>
+    </div>
+
+    <div id="win-paint" class="window" style="top: 50px; left: 350px; width: 400px; height: 350px; display: none; flex-direction: column;">
+        <div class="window-header" onmousedown="startDrag(event, this.parentElement)">
+            <span>bez názvu - Paint</span>
+            <div class="close-btn" onclick="closeWindow('win-paint')">X</div>
+        </div>
+        <div style="background: #c0c0c0; padding: 5px; border-bottom: 1px solid gray; display: flex; gap: 5px;">
+            <button onclick="savePaint()" style="margin-left: 5px; font-size: 10px;">💾 Uložit</button>
+            <div onclick="setColor('black')" style="width: 20px; height: 20px; background: black; border: 2px inset white; cursor: pointer;"></div>
+            <div onclick="setColor('red')" style="width: 20px; height: 20px; background: red; border: 2px inset white; cursor: pointer;"></div>
+            <div onclick="setColor('blue')" style="width: 20px; height: 20px; background: blue; border: 2px inset white; cursor: pointer;"></div>
+            <div onclick="setColor('green')" style="width: 20px; height: 20px; background: green; border: 2px inset white; cursor: pointer;"></div>
+            <div onclick="setColor('white')" style="width: 20px; height: 20px; background: white; border: 2px inset white; cursor: pointer;" title="Guma"></div>
+            <button onclick="clearCanvas()" style="margin-left: auto; font-size: 10px;">Smazat</button>
+        </div>
+        <div class="window-body" style="padding: 0; flex-grow: 1; background: white; cursor: crosshair;">
+            <canvas id="paintCanvas" width="380" height="280"></canvas>
+        </div>
+    </div>
+
+    <div id="win-notepad" class="window" style="top: 150px; left: 300px; width: 400px; height: 300px; display: none; flex-direction: column;">
+        <div class="window-header" onmousedown="startDrag(event, this.parentElement)">
+            <span>Bez názvu - Notepad</span>
+            <div class="close-btn" onclick="closeWindow('win-notepad')">X</div>
+        </div>
+        <div style="background: #c0c0c0; padding: 2px 5px; display: flex; gap: 10px; align-items: center;">
+            <button onclick="saveNotepad()" style="font-size: 11px; padding: 0 5px; cursor: pointer;">💾 Uložit</button>
+        </div>
+        <div class="window-body" style="padding: 0; flex-grow: 1; display: flex;">
+            <textarea style="width: 100%; height: 100%; resize: none; border: none; font-family: 'Courier New', monospace; font-size: 14px; padding: 5px; outline: none;" placeholder="Zde pište svoje poznamky..."></textarea>
+        </div>
+    </div>
+
+    <div id="win-contact" class="window" style="top: 150px; left: 300px; width: 400px; height: 200px; display: none; flex-direction: column;">
+        <div class="window-header" onmousedown="startDrag(event, this.parentElement)">
+            <span>Kontakt</span>
+            <div class="close-btn" onclick="closeWindow('win-contact')">X</div>
+        </div>
+        <div class="window-body">
+            <div style="font-size: 35px;">📞</div>
+                <div class="code-block">
+                    <b>Telefon:</b> +420705963073
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="start-menu">
+        <div style="background: #000080; color: white; padding: 5px 10px; font-weight: bold; margin-bottom: 2px; display: flex; align-items: center;">
+            <span style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 16px; margin-right: 5px;">Windows 95</span>
+            <span style="font-size: 12px;">Systém</span>
+        </div>
+        <div class="menu-item" onclick="openWindow('win-about'); toggleStart()">
+            <span>💻</span> Systémové info
+        </div>
+        <div class="menu-item" onclick="openWindow('win-projects'); toggleStart()">
+            <span>📁</span> Projekty
+        </div>
+        <div style="border-top: 1px solid #808080; border-bottom: 1px solid white; margin: 2px 0;"></div>
+        <div class="menu-item" onclick="triggerBSOD()">
+            <span>🔌</span> Vypnout
+        </div>
+    </div>
+
+    <div id="calendar-popup">
+        <div style="text-align: center; font-weight: bold; margin-bottom: 5px; background: #000080; color: white; padding: 2px;">
+            <span id="cal-month">Měsíc</span> <span id="cal-year">Rok</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 12px;">
+            <div>Ne</div><div>Po</div><div>Út</div><div>St</div><div>Čt</div><div>Pá</div><div>So</div>
+        </div>
+        <div id="cal-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; margin-top: 5px; background: white; border: 1px solid gray;"></div>
+    </div>
+
+    <div class="taskbar">
+        <div class="start-btn" onclick="toggleStart()">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Windows_95_logo_minimal.svg/1200px-Windows_95_logo_minimal.svg.png" height="15" style="margin-right:5px;">
+            Start
+        </div>
+        <div class="start-btn" onclick="openWindow('win-contact')" style="margin-left: auto;">
+            Kontakt
+        </div>
+        <div class="clock" id="clock" onclick="toggleCalendar()" style="margin-left: 0;">12:00</div>
+    </div>
+
+    <div id="bsod" onclick="location.reload()">
+        <div style="width: 80%; margin: 0 auto;">
+            <p style="background: #AAAAAA; color: #0000AA; display: inline-block; padding: 0 5px; font-weight: bold;">Windows</p>
+            <br><br>
+            <p>A fatal exception 0E has occurred at 0028:C0011E36 in VXD VMM(01) + 00010E36. The current application will be terminated.</p>
+            <br>
+            <ul>
+                <li>Press any key to terminate the current application.</li>
+                <li>Press CTRL+ALT+DEL again to restart your computer. You will lose any unsaved information in all applications.</li>
+            </ul>
+            <br>
+            <p align="center">Press any key to continue</p>
+        </div>
+    </div>
+
+    <script>
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            if(win) {
+                win.style.display = 'flex';
+                bringToFront(win);
+            }
+        }
+
+        function closeWindow(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        let zIndex = 10;
+        function bringToFront(element) {
+            zIndex++;
+            element.style.zIndex = zIndex;
+        }
+
+        function startDrag(e, windowEl) {
+            e.preventDefault();
+            bringToFront(windowEl);
+            let shiftX = e.clientX - windowEl.getBoundingClientRect().left;
+            let shiftY = e.clientY - windowEl.getBoundingClientRect().top;
+
+            function moveAt(pageX, pageY) {
+                windowEl.style.left = pageX - shiftX + 'px';
+                windowEl.style.top = pageY - shiftY + 'px';
+            }
+
+            function onMouseMove(event) {
+                moveAt(event.pageX, event.pageY);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            windowEl.onmouseup = function() {
+                document.removeEventListener('mousemove', onMouseMove);
+                windowEl.onmouseup = null;
+            };
+        }
+
+        const icons = document.querySelectorAll('.icon');
+        icons.forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                icons.forEach(i => i.classList.remove('selected'));
+                icon.classList.add('selected');
+                e.stopPropagation();
+            });
+
+            icon.onmousedown = function(event) {
+                icons.forEach(i => i.classList.remove('selected'));
+                icon.classList.add('selected');
+                let shiftX = event.clientX - icon.getBoundingClientRect().left;
+                let shiftY = event.clientY - icon.getBoundingClientRect().top;
+                icon.style.zIndex = 1000;
+
+                function moveAt(pageX, pageY) {
+                    icon.style.left = pageX - shiftX + 'px';
+                    icon.style.top = pageY - shiftY + 'px';
+                }
+                function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
+                document.addEventListener('mousemove', onMouseMove);
+                icon.onmouseup = function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    icon.onmouseup = null;
+                    icon.style.zIndex = null;
+                };
+            };
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.icon')) {
+                icons.forEach(i => i.classList.remove('selected'));
+            }
+            const menu = document.getElementById('start-menu');
+            const btn = document.querySelector('.start-btn');
+            if (e.target !== menu && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+            const cal = document.getElementById('calendar-popup');
+            const clock = document.getElementById('clock');
+            if (!cal.contains(e.target) && e.target !== clock) {
+                cal.style.display = 'none';
+                clock.classList.remove('active');
+            }
+        });
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+
+        function toggleStart() {
+            const menu = document.getElementById('start-menu');
+            menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+        }
+
+        function triggerBSOD() {
+            document.getElementById('bsod').style.display = 'block';
+        }
+
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        let painting = false;
+        let color = 'black';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+
+        function setColor(c) { color = c; }
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        canvas.addEventListener('mousedown', (e) => { painting = true; draw(e); });
+        canvas.addEventListener('mouseup', () => { painting = false; ctx.beginPath(); });
+        canvas.addEventListener('mousemove', draw);
+
+        function draw(e) {
+            if (!painting) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ctx.strokeStyle = color;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function savePaint() {
+            const imageURI = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.href = imageURI;
+            link.download = "MujObrazek.png";
+            link.click();
+        }
+
+        function saveNotepad() {
+            const text = document.querySelector('#win-notepad textarea').value;
+            const blob = new Blob([text], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "Document.txt";
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        function toggleCalendar() {
+            const cal = document.getElementById('calendar-popup');
+            const clock = document.getElementById('clock');
+            if (cal.style.display === 'block') {
+                cal.style.display = 'none';
+                clock.classList.remove('active');
+            } else {
+                generateCalendar();
+                cal.style.display = 'block';
+                clock.classList.add('active');
+            }
+        }
+
+        function generateCalendar() {
+            const date = new Date();
+            const monthNames = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
+            document.getElementById('cal-month').innerText = monthNames[date.getMonth()];
+            document.getElementById('cal-year').innerText = date.getFullYear();
+
+            const grid = document.getElementById('cal-grid');
+            grid.innerHTML = "";
+            const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+            const today = date.getDate();
+
+            for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div></div>`;
+            for (let i = 1; i <= daysInMonth; i++) {
+                let style = "padding: 2px; cursor: default;";
+                if (i === today) style += "background-color: #000080; color: white; border: 1px dotted white;";
+                grid.innerHTML += `<div style="${style}">${i}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
